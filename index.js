@@ -8,10 +8,20 @@ class Block {
     this.data = data;
     this.previousHash = previousHash;
     this.hash = this.calculateHash();
+    this.nonce = 0;
   }
 
   calculateHash() {
-    return hash(this.index + this.timestamp + this.previousHash + JSON.stringify(this.data)).toString();
+    return hash(this.index + this.timestamp + this.previousHash + this.nonce + JSON.stringify(this.data)).toString();
+  }
+
+  mineBlock(complexity) {
+    while(this.hash.substring(0, complexity) !== Array(complexity + 1).join("0")) {
+      this.nonce = this.nonce + 1;
+      this.hash = this.calculateHash();
+    }
+
+    console.log('Block mined', this.hash);
   }
 }
 
@@ -31,7 +41,7 @@ class Blockchain {
 
   addBlock(newBlock) {
     newBlock.previousHash = this.getLatestBlock().hash;
-    newBlock.hash = newBlock.calculateHash();
+    newBlock.mineBlock(5);
     this.chain.push(newBlock);
   }
 
@@ -54,13 +64,8 @@ class Blockchain {
 
 const myCustomBlockchain = new Blockchain();
 
+console.log('Mining block 1...');
 myCustomBlockchain.addBlock(new Block(1, "01/02/2021", [{ amount: 100, sender: 'Quentin', receiver: 'Fabien'}]));
+console.log('Mining block 2...');
 myCustomBlockchain.addBlock(new Block(2, "05/02/2021", [{ amount: 50, sender: 'Fabien', receiver: 'Quentin'}]));
-console.log('is valid?', myCustomBlockchain.isValid());
-
-myCustomBlockchain.chain[1].data[0].amount = 50;
-myCustomBlockchain.chain[1].hash = myCustomBlockchain.chain[1].calculateHash();
-
-console.log('is valid?', myCustomBlockchain.isValid());
-console.log(JSON.stringify(myCustomBlockchain, null, 4));
 
